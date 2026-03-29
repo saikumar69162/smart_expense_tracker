@@ -27,6 +27,14 @@ export const ExpenseProvider = ({ children }) => {
   });
   const { isAuthenticated } = useAuth();
 
+  const normalizeExpense = (expense) => ({
+    ...expense,
+    categoryId: expense.categoryId || expense.Category?.id || '',
+    category: expense.category || expense.Category?.name || '',
+    categoryIcon: expense.categoryIcon || expense.Category?.icon || '',
+    categoryColor: expense.categoryColor || expense.Category?.color || ''
+  });
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchExpenses();
@@ -43,7 +51,7 @@ export const ExpenseProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await api.get('/expenses');
-      setExpenses(response.data.expenses || []);
+      setExpenses((response.data.expenses || []).map(normalizeExpense));
     } catch (error) {
       console.error('Failed to fetch expenses:', error);
       toast.error('Failed to load expenses');
@@ -55,9 +63,10 @@ export const ExpenseProvider = ({ children }) => {
   const addExpense = async (expenseData) => {
     try {
       const response = await api.post('/expenses', expenseData);
-      setExpenses(prev => [response.data.expense, ...prev]);
+      const normalizedExpense = normalizeExpense(response.data.expense);
+      setExpenses(prev => [normalizedExpense, ...prev]);
       toast.success('Expense added successfully');
-      return response.data.expense;
+      return normalizedExpense;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add expense');
       throw error;
@@ -67,9 +76,10 @@ export const ExpenseProvider = ({ children }) => {
   const updateExpense = async (id, expenseData) => {
     try {
       const response = await api.put(`/expenses/${id}`, expenseData);
-      setExpenses(prev => prev.map(exp => exp.id === id ? response.data.expense : exp));
+      const normalizedExpense = normalizeExpense(response.data.expense);
+      setExpenses(prev => prev.map(exp => exp.id === id ? normalizedExpense : exp));
       toast.success('Expense updated successfully');
-      return response.data.expense;
+      return normalizedExpense;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update expense');
       throw error;

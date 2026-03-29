@@ -91,7 +91,7 @@ const ExpenseFilters = () => {
               type="number"
               value={filters.minAmount}
               onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-              placeholder="$0"
+              placeholder="£0"
               className="input-field text-sm"
               step="1"
             />
@@ -104,7 +104,7 @@ const ExpenseFilters = () => {
               type="number"
               value={filters.maxAmount}
               onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
-              placeholder="$1000"
+              placeholder="£1000"
               className="input-field text-sm"
               step="1"
             />

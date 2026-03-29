@@ -6,7 +6,7 @@ const ExpenseForm = ({ expense, onClose }) => {
   const { addExpense, updateExpense, categories } = useExpenses();
   const [formData, setFormData] = useState({
     amount: '',
-    category: '',
+    categoryId: '',
     date: new Date().toISOString().split('T')[0],
     description: ''
   });
@@ -17,7 +17,7 @@ const ExpenseForm = ({ expense, onClose }) => {
     if (expense) {
       setFormData({
         amount: expense.amount.toString(),
-        category: expense.category,
+        categoryId: expense.categoryId || '',
         date: expense.date.split('T')[0],
         description: expense.description || ''
       });
@@ -30,8 +30,8 @@ const ExpenseForm = ({ expense, onClose }) => {
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Please enter a valid amount';
     }
-    if (!formData.category) {
-      newErrors.category = 'Please select a category';
+    if (!formData.categoryId) {
+      newErrors.categoryId = 'Please select a category';
     }
     if (!formData.date) {
       newErrors.date = 'Please select a date';
@@ -97,7 +97,7 @@ const ExpenseForm = ({ expense, onClose }) => {
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                $
+                £
               </span>
               <input
                 type="number"
@@ -120,20 +120,20 @@ const ExpenseForm = ({ expense, onClose }) => {
               Category *
             </label>
             <select
-              name="category"
-              value={formData.category}
+              name="categoryId"
+              value={formData.categoryId}
               onChange={handleChange}
-              className={`input-field ${errors.category ? 'border-red-500' : ''}`}
+              className={`input-field ${errors.categoryId ? 'border-red-500' : ''}`}
             >
               <option value="">Select a category</option>
               {categories.map(category => (
-                <option key={category.id} value={category.name}>
+                <option key={category.id} value={category.id}>
                   {category.icon} {category.name}
                 </option>
               ))}
             </select>
-            {errors.category && (
-              <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+            {errors.categoryId && (
+              <p className="mt-1 text-sm text-red-600">{errors.categoryId}</p>
             )}
           </div>
           
