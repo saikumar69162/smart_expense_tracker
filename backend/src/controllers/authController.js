@@ -1,6 +1,24 @@
 const { generateToken } = require('../config/jwt');
 const User = require('../models/User');
-const { Op } = require('sequelize');
+
+const buildUsername = async (name, email) => {
+  const baseFromName = (name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+    .slice(0, 20);
+  const baseFromEmail = (email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]+/g, '');
+  const base = baseFromName || baseFromEmail || 'user';
+
+  let candidate = base;
+  let suffix = 1;
+
+  while (await User.findOne({ where: { username: candidate } })) {
+    candidate = `${base}${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+};
 
 const register = async (req, res) => {
   try {
@@ -17,6 +35,7 @@ const register = async (req, res) => {
 
     // Create user
     const user = await User.create({
+      username: await buildUsername(name, email),
       name,
       email,
       password

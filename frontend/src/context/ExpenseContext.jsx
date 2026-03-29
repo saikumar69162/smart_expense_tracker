@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from './AuthContext';
+import api from '../services/api';
 
 const ExpenseContext = createContext();
 
@@ -32,14 +32,18 @@ export const ExpenseProvider = ({ children }) => {
       fetchExpenses();
       fetchCategories();
       fetchBudget();
+    } else {
+      setExpenses([]);
+      setCategories([]);
+      setBudget(null);
     }
   }, [isAuthenticated]);
 
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/expenses');
-      setExpenses(response.data);
+      const response = await api.get('/expenses');
+      setExpenses(response.data.expenses || []);
     } catch (error) {
       console.error('Failed to fetch expenses:', error);
       toast.error('Failed to load expenses');
@@ -50,10 +54,10 @@ export const ExpenseProvider = ({ children }) => {
 
   const addExpense = async (expenseData) => {
     try {
-      const response = await axios.post('/api/expenses', expenseData);
-      setExpenses(prev => [response.data, ...prev]);
+      const response = await api.post('/expenses', expenseData);
+      setExpenses(prev => [response.data.expense, ...prev]);
       toast.success('Expense added successfully');
-      return response.data;
+      return response.data.expense;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add expense');
       throw error;
@@ -62,10 +66,10 @@ export const ExpenseProvider = ({ children }) => {
 
   const updateExpense = async (id, expenseData) => {
     try {
-      const response = await axios.put(`/api/expenses/${id}`, expenseData);
-      setExpenses(prev => prev.map(exp => exp.id === id ? response.data : exp));
+      const response = await api.put(`/expenses/${id}`, expenseData);
+      setExpenses(prev => prev.map(exp => exp.id === id ? response.data.expense : exp));
       toast.success('Expense updated successfully');
-      return response.data;
+      return response.data.expense;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update expense');
       throw error;
@@ -74,7 +78,7 @@ export const ExpenseProvider = ({ children }) => {
 
   const deleteExpense = async (id) => {
     try {
-      await axios.delete(`/api/expenses/${id}`);
+      await api.delete(`/expenses/${id}`);
       setExpenses(prev => prev.filter(exp => exp.id !== id));
       toast.success('Expense deleted successfully');
     } catch (error) {
@@ -85,8 +89,8 @@ export const ExpenseProvider = ({ children }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('/api/categories');
-      setCategories(response.data);
+      const response = await api.get('/categories');
+      setCategories(response.data.categories || []);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
       // Set default categories if API fails
@@ -105,8 +109,8 @@ export const ExpenseProvider = ({ children }) => {
 
   const fetchBudget = async () => {
     try {
-      const response = await axios.get('/api/budget');
-      setBudget(response.data);
+      const response = await api.get('/budget');
+      setBudget(response.data.budgets || []);
     } catch (error) {
       console.error('Failed to fetch budget:', error);
     }
@@ -114,10 +118,13 @@ export const ExpenseProvider = ({ children }) => {
 
   const updateBudget = async (budgetData) => {
     try {
-      const response = await axios.post('/api/budget', budgetData);
-      setBudget(response.data);
+      const response = await api.post('/budget', budgetData);
+      setBudget((current) => {
+        const currentBudgets = Array.isArray(current) ? current : [];
+        return [response.data.budget, ...currentBudgets];
+      });
       toast.success('Budget updated successfully');
-      return response.data;
+      return response.data.budget;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update budget');
       throw error;
