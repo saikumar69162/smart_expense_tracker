@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();
     } else {
       setLoading(false);
@@ -28,11 +27,11 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/api/auth/me');
-      setUser(response.data.user);
+      const response = await authService.getCurrentUser();
+      setUser(response.user);
     } catch (error) {
       console.error('Failed to fetch user:', error);
-      logout();
+      logout(false);
     } finally {
       setLoading(false);
     }
@@ -40,46 +39,53 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
-      const { token: newToken, user: userData } = response.data;
+      const response = await authService.login(email, password);
+      const { token: newToken, user: userData } = response;
       
       localStorage.setItem('token', newToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       setToken(newToken);
       setUser(userData);
       
       toast.success('Login successful!');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.msg ||
+          'Login failed'
+      );
       return false;
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
-      const { token: newToken, user: userDataResponse } = response.data;
+      const response = await authService.register(userData);
+      const { token: newToken, user: userDataResponse } = response;
       
       localStorage.setItem('token', newToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       setToken(newToken);
       setUser(userDataResponse);
       
       toast.success('Registration successful!');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.msg ||
+          'Registration failed'
+      );
       return false;
     }
   };
 
-  const logout = () => {
+  const logout = (showToast = true) => {
     localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);
-    toast.success('Logged out successfully');
+    if (showToast) {
+      toast.success('Logged out successfully');
+    }
   };
 
   const value = {

@@ -55,16 +55,16 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white rounded-xl shadow-2xl p-8 transform transition-all duration-500 animate-fade-in">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="animate-fade-in w-full max-w-md space-y-8 rounded-3xl border border-white/70 bg-white/95 p-8 shadow-2xl shadow-slate-300/40 backdrop-blur">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-200">
             <span className="text-3xl">💰</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-gray-900">
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
             Welcome Back
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-slate-600">
             Sign in to manage your expenses
           </p>
         </div>
@@ -72,12 +72,12 @@ const Login = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
                 Email Address
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiMail className="text-gray-400" />
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <FiMail className="text-slate-400" />
                 </div>
                 <input
                   type="email"
@@ -86,6 +86,7 @@ const Login = () => {
                   onChange={handleChange}
                   className={`input-field pl-10 ${errors.email ? 'border-red-500' : ''}`}
                   placeholder="you@example.com"
+                  autoComplete="email"
                 />
               </div>
               {errors.email && (
@@ -94,27 +95,29 @@ const Login = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
                 Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiLock className="text-gray-400" />
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <FiLock className="text-slate-400" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`input-field pl-10 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`input-field pr-12 pl-10 ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 transition hover:text-slate-700"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <FiEyeOff className="text-gray-400" /> : <FiEye className="text-gray-400" />}
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
               {errors.password && (
@@ -129,14 +132,14 @@ const Login = () => {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700">
                 Remember me
               </label>
             </div>
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <a href="#" className="font-medium text-blue-600 transition hover:text-blue-500">
                 Forgot password?
               </a>
             </div>
@@ -158,29 +161,14 @@ const Login = () => {
           </button>
           
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               Don't have an account?{' '}
-              <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link to="/register" className="font-medium text-blue-600 transition hover:text-blue-500">
                 Sign up
               </Link>
             </p>
           </div>
         </form>
-        
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Demo Credentials</span>
-            </div>
-          </div>
-          <div className="mt-4 bg-gray-50 rounded-lg p-3 text-sm">
-            <p className="text-gray-600">Email: demo@example.com</p>
-            <p className="text-gray-600">Password: demo123456</p>
-          </div>
-        </div>
       </div>
     </div>
   );
