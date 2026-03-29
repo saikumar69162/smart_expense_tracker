@@ -19,7 +19,8 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
         <div className="flex items-center">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+            aria-label="Toggle navigation menu"
           >
             <FiMenu size={24} className="text-gray-600" />
           </button>

@@ -5,7 +5,7 @@ import {
   FiSettings, FiHelpCircle 
 } from 'react-icons/fi';
 
-const Sidebar = ({ sidebarOpen }) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const menuItems = [
     { path: '/dashboard', icon: <FiHome size={20} />, label: 'Dashboard' },
     { path: '/expenses', icon: <FiList size={20} />, label: 'Expenses' },
@@ -18,16 +18,27 @@ const Sidebar = ({ sidebarOpen }) => {
     { path: '/settings', icon: <FiSettings size={20} />, label: 'Settings' },
     { path: '/help', icon: <FiHelpCircle size={20} />, label: 'Help' },
   ];
+
+  const handleNavClick = () => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+  };
   
   return (
-    <aside className={`fixed left-0 top-0 h-full bg-white shadow-lg z-30 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-0 -translate-x-full'}`}>
-      <div className="h-16"></div> {/* Spacer for navbar */}
+    <aside
+      className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:static lg:z-0 lg:translate-x-0 lg:shadow-none ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
+      <div className="h-16 lg:hidden"></div>
       <nav className="mt-4 px-4">
         <div className="space-y-1">
           {menuItems.map(item => (
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={handleNavClick}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
@@ -49,6 +60,7 @@ const Sidebar = ({ sidebarOpen }) => {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={handleNavClick}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
