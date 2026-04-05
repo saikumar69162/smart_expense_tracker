@@ -1,6 +1,6 @@
 const Category = require('../models/Category');
 const Expense = require('../models/Expense');
-const { Op } = require('sequelize');
+const { Op, fn, col, where } = require('sequelize');
 
 const getCategories = async (req, res) => {
   try {
@@ -35,7 +35,9 @@ const createCategory = async (req, res) => {
     // Check if category already exists
     const existingCategory = await Category.findOne({
       where: {
-        name: { [Op.iLike]: name },
+        [Op.and]: [
+          where(fn('LOWER', col('name')), name.trim().toLowerCase())
+        ],
         userId: req.user.id
       }
     });
@@ -49,7 +51,7 @@ const createCategory = async (req, res) => {
     
     const category = await Category.create({
       userId: req.user.id,
-      name,
+      name: name.trim(),
       icon: icon || '📝',
       color: color || '#6b7280',
       parentCategory,
@@ -87,8 +89,27 @@ const updateCategory = async (req, res) => {
     }
     
     const { name, icon, color, parentCategory } = req.body;
+
+    if (name) {
+      const existingCategory = await Category.findOne({
+        where: {
+          userId: req.user.id,
+          id: { [Op.ne]: req.params.id },
+          [Op.and]: [
+            where(fn('LOWER', col('name')), name.trim().toLowerCase())
+          ]
+        }
+      });
+
+      if (existingCategory) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category already exists'
+        });
+      }
+    }
     
-    if (name) category.name = name;
+    if (name) category.name = name.trim();
     if (icon) category.icon = icon;
     if (color) category.color = color;
     if (parentCategory !== undefined) category.parentCategory = parentCategory;

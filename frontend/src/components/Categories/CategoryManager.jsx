@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useExpenses } from '../../context/ExpenseContext';
-import { CATEGORIES } from '../../utils/constants';
-import CategoryBadge from './CategoryBadge';
 import { FiPlus, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
 
 const CategoryManager = () => {
-  const { categories, addExpense } = useExpenses();
+  const { categories, addCategory, updateCategory, deleteCategory } = useExpenses();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({
@@ -13,6 +11,7 @@ const CategoryManager = () => {
     icon: '📝',
     color: '#6b7280'
   });
+  const [saving, setSaving] = useState(false);
   
   const iconOptions = ['🍔', '🚗', '🛍️', '🎬', '💡', '🏥', '📚', '🏠', '💪', '🎮', '☕', '🍕', '✈️', '🎁', '📝'];
   const colorOptions = [
@@ -20,12 +19,33 @@ const CategoryManager = () => {
     '#ec4898', '#06b6d4', '#6b7280', '#f97316', '#84cc16'
   ];
   
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // In a real app, you would save to backend
-    console.log('Save category:', formData);
+  const resetForm = () => {
     setShowAddModal(false);
+    setEditingCategory(null);
     setFormData({ name: '', icon: '📝', color: '#6b7280' });
+    setSaving(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const payload = {
+        name: formData.name.trim(),
+        icon: formData.icon,
+        color: formData.color
+      };
+
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, payload);
+      } else {
+        await addCategory(payload);
+      }
+
+      resetForm();
+    } catch (error) {
+      setSaving(false);
+    }
   };
   
   const handleEdit = (category) => {
@@ -38,9 +58,9 @@ const CategoryManager = () => {
     setShowAddModal(true);
   };
   
-  const handleDelete = (categoryId) => {
+  const handleDelete = async (categoryId) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      console.log('Delete category:', categoryId);
+      await deleteCategory(categoryId);
     }
   };
   
@@ -105,8 +125,7 @@ const CategoryManager = () => {
               </h2>
               <button
                 onClick={() => {
-                  setShowAddModal(false);
-                  setEditingCategory(null);
+                  resetForm();
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -176,15 +195,14 @@ const CategoryManager = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowAddModal(false);
-                    setEditingCategory(null);
+                    resetForm();
                   }}
                   className="flex-1 btn-secondary"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="flex-1 btn-primary">
-                  {editingCategory ? 'Update' : 'Add'} Category
+                <button type="submit" disabled={saving} className="flex-1 btn-primary disabled:opacity-50">
+                  {saving ? 'Saving...' : `${editingCategory ? 'Update' : 'Add'} Category`}
                 </button>
               </div>
             </form>

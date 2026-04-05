@@ -1,6 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useExpenses } from '../../context/ExpenseContext';
+import { formatCurrency } from '../../utils/formatters';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4898', '#06b6d4', '#6b7280'];
 
@@ -39,7 +40,7 @@ const ExpenseChart = () => {
           ))}
         </Pie>
         <Tooltip 
-          formatter={(value) => `$${value.toFixed(2)}`}
+          formatter={(value) => formatCurrency(value)}
           contentStyle={{ backgroundColor: 'white', borderRadius: '8px', padding: '8px' }}
         />
         <Legend />

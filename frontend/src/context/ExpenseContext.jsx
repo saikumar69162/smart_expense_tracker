@@ -154,6 +154,45 @@ export const ExpenseProvider = ({ children }) => {
     }
   };
 
+  const addCategory = async (categoryData) => {
+    try {
+      const response = await api.post('/categories', categoryData);
+      setCategories((prev) => [...prev, response.data.category].sort((a, b) => a.name.localeCompare(b.name)));
+      toast.success('Category added successfully');
+      return response.data.category;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add category');
+      throw error;
+    }
+  };
+
+  const updateCategory = async (id, categoryData) => {
+    try {
+      const response = await api.put(`/categories/${id}`, categoryData);
+      setCategories((prev) =>
+        prev
+          .map((category) => (category.id === id ? response.data.category : category))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      );
+      toast.success('Category updated successfully');
+      return response.data.category;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update category');
+      throw error;
+    }
+  };
+
+  const deleteCategory = async (id) => {
+    try {
+      await api.delete(`/categories/${id}`);
+      setCategories((prev) => prev.filter((category) => category.id !== id));
+      toast.success('Category deleted successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete category');
+      throw error;
+    }
+  };
+
   const fetchBudget = async () => {
     try {
       const response = await api.get('/budget');
@@ -291,6 +330,9 @@ export const ExpenseProvider = ({ children }) => {
     addExpense,
     updateExpense,
     deleteExpense,
+    addCategory,
+    updateCategory,
+    deleteCategory,
     updateBudget,
     getFilteredExpenses,
     getTotalExpenses,

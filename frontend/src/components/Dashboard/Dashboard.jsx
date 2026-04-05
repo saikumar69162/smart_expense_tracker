@@ -5,7 +5,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import ExpenseChart from './ExpenseChart';
 import BudgetProgress from './BudgetProgress';
 import RecentTransactions from './RecentTransactions';
-import { FiDollarSign, FiTrendingUp, FiTrendingDown, FiCalendar } from 'react-icons/fi';
+import { FiTrendingUp, FiTrendingDown, FiCalendar } from 'react-icons/fi';
 
 const Dashboard = () => {
   const { expenses, getTotalExpenses, getExpensesByCategory, budget, loading } = useExpenses();
@@ -53,7 +53,7 @@ const Dashboard = () => {
     {
       title: 'Total Expenses',
       value: formatCurrency(stats.totalExpenses),
-      icon: <FiDollarSign className="text-blue-500" size={24} />,
+      icon: <span className="text-blue-500 text-xl font-bold leading-none">£</span>,
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-600'
     },
@@ -74,7 +74,7 @@ const Dashboard = () => {
     {
       title: 'Remaining Budget',
       value: formatCurrency(stats.remainingBudget),
-      icon: <FiDollarSign className="text-purple-500" size={24} />,
+      icon: <span className="text-purple-500 text-xl font-bold leading-none">£</span>,
       bgColor: 'bg-purple-50',
       textColor: 'text-purple-600'
     }
