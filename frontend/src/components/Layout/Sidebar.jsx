@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   FiHome, FiList, FiPieChart, FiTarget, FiGrid, 
-  FiSettings, FiHelpCircle 
+  FiUser, FiMail 
 } from 'react-icons/fi';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -15,8 +15,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   ];
   
   const bottomItems = [
-    { path: '/settings', icon: <FiSettings size={20} />, label: 'Settings' },
-    { path: '/help', icon: <FiHelpCircle size={20} />, label: 'Help' },
+    { path: '/profile', icon: <FiUser size={20} />, label: 'Profile' },
+    { path: '/contact-us', icon: <FiMail size={20} />, label: 'Contact Us' },
   ];
 
   const handleNavClick = () => {

@@ -9,8 +9,14 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   
   const handleLogout = () => {
+    setShowDropdown(false);
     logout();
     navigate('/login');
+  };
+
+  const handleProfileClick = () => {
+    setShowDropdown(false);
+    navigate('/profile');
   };
   
   return (
@@ -52,10 +58,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-1 animate-fade-in">
                 <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    // Navigate to profile
-                  }}
+                  onClick={handleProfileClick}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                 >
                   <FiUser size={16} className="mr-2" />

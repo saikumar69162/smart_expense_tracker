@@ -13,6 +13,8 @@ import BudgetSetup from './components/Budget/BudgetSetup';
 import CategoryManager from './components/Categories/CategoryManager';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import Profile from './components/Profile/Profile';
+import ContactUs from './components/Contact/ContactUs';
 
 function App() {
   return (
@@ -54,6 +56,8 @@ function App() {
                 <Route path="reports" element={<Reports />} />
                 <Route path="budget" element={<BudgetSetup />} />
                 <Route path="categories" element={<CategoryManager />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="contact-us" element={<ContactUs />} />
               </Route>
             </Routes>
           </Router>
