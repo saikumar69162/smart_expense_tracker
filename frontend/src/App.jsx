@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { ExpenseProvider } from './context/ExpenseContext';
+import { NotificationsProvider } from './context/NotificationsContext';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateRoute from './components/Auth/PrivateRoute';
 import Layout from './components/Layout/Layout';
@@ -20,48 +21,50 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <ExpenseProvider>
-          <Router>
-            <Toaster 
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-                success: {
-                  duration: 3000,
-                  iconTheme: {
-                    primary: '#10b981',
-                    secondary: '#fff',
-                  },
-                },
-                error: {
+        <NotificationsProvider>
+          <ExpenseProvider>
+            <Router>
+              <Toaster 
+                position="top-right"
+                toastOptions={{
                   duration: 4000,
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
+                  style: {
+                    background: '#363636',
+                    color: '#fff',
                   },
-                },
-              }}
-            />
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="expenses" element={<ExpenseList />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="budget" element={<BudgetSetup />} />
-                <Route path="categories" element={<CategoryManager />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="contact-us" element={<ContactUs />} />
-              </Route>
-            </Routes>
-          </Router>
-        </ExpenseProvider>
+                  success: {
+                    duration: 3000,
+                    iconTheme: {
+                      primary: '#10b981',
+                      secondary: '#fff',
+                    },
+                  },
+                  error: {
+                    duration: 4000,
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="expenses" element={<ExpenseList />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="budget" element={<BudgetSetup />} />
+                  <Route path="categories" element={<CategoryManager />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="contact-us" element={<ContactUs />} />
+                </Route>
+              </Routes>
+            </Router>
+          </ExpenseProvider>
+        </NotificationsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

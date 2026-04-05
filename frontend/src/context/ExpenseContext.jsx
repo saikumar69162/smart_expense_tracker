@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from './AuthContext';
+import { useNotifications } from './NotificationsContext';
 import api from '../services/api';
+import { formatCurrency } from '../utils/formatters';
 
 const ExpenseContext = createContext();
 
@@ -63,6 +65,7 @@ export const ExpenseProvider = ({ children }) => {
     maxAmount: ''
   });
   const { isAuthenticated } = useAuth();
+  const { addNotification } = useNotifications();
 
   const normalizeExpense = (expense) => ({
     ...expense,
@@ -102,6 +105,14 @@ export const ExpenseProvider = ({ children }) => {
       const response = await api.post('/expenses', expenseData);
       const normalizedExpense = normalizeExpense(response.data.expense);
       setExpenses(prev => [normalizedExpense, ...prev]);
+      if ((parseFloat(normalizedExpense.amount) || 0) >= 100) {
+        addNotification({
+          title: 'Large expense recorded',
+          message: `${normalizedExpense.category || 'Expense'} added for ${formatCurrency(normalizedExpense.amount)}.`,
+          type: 'warning',
+          dedupeKey: `large-expense-${normalizedExpense.id}`
+        });
+      }
       toast.success('Expense added successfully');
       return normalizedExpense;
     } catch (error) {
@@ -115,6 +126,14 @@ export const ExpenseProvider = ({ children }) => {
       const response = await api.put(`/expenses/${id}`, expenseData);
       const normalizedExpense = normalizeExpense(response.data.expense);
       setExpenses(prev => prev.map(exp => exp.id === id ? normalizedExpense : exp));
+      if ((parseFloat(normalizedExpense.amount) || 0) >= 100) {
+        addNotification({
+          title: 'Large expense updated',
+          message: `${normalizedExpense.category || 'Expense'} is now ${formatCurrency(normalizedExpense.amount)}.`,
+          type: 'warning',
+          dedupeKey: `large-expense-update-${normalizedExpense.id}`
+        });
+      }
       toast.success('Expense updated successfully');
       return normalizedExpense;
     } catch (error) {
@@ -127,6 +146,12 @@ export const ExpenseProvider = ({ children }) => {
     try {
       await api.delete(`/expenses/${id}`);
       setExpenses(prev => prev.filter(exp => exp.id !== id));
+      addNotification({
+        title: 'Expense deleted',
+        message: 'A transaction was removed from your records.',
+        type: 'info',
+        dedupeKey: `expense-delete-${id}`
+      });
       toast.success('Expense deleted successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete expense');
@@ -158,6 +183,12 @@ export const ExpenseProvider = ({ children }) => {
     try {
       const response = await api.post('/categories', categoryData);
       setCategories((prev) => [...prev, response.data.category].sort((a, b) => a.name.localeCompare(b.name)));
+      addNotification({
+        title: 'Category created',
+        message: `${response.data.category.name} was added to your categories.`,
+        type: 'success',
+        dedupeKey: `category-create-${response.data.category.id}`
+      });
       toast.success('Category added successfully');
       return response.data.category;
     } catch (error) {
@@ -174,6 +205,12 @@ export const ExpenseProvider = ({ children }) => {
           .map((category) => (category.id === id ? response.data.category : category))
           .sort((a, b) => a.name.localeCompare(b.name))
       );
+      addNotification({
+        title: 'Category updated',
+        message: `${response.data.category.name} was updated successfully.`,
+        type: 'success',
+        dedupeKey: `category-update-${response.data.category.id}-${response.data.category.updatedAt || Date.now()}`
+      });
       toast.success('Category updated successfully');
       return response.data.category;
     } catch (error) {
@@ -184,8 +221,15 @@ export const ExpenseProvider = ({ children }) => {
 
   const deleteCategory = async (id) => {
     try {
+      const categoryToDelete = categories.find((category) => category.id === id);
       await api.delete(`/categories/${id}`);
       setCategories((prev) => prev.filter((category) => category.id !== id));
+      addNotification({
+        title: 'Category deleted',
+        message: `${categoryToDelete?.name || 'A category'} was removed.`,
+        type: 'info',
+        dedupeKey: `category-delete-${id}`
+      });
       toast.success('Category deleted successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete category');
@@ -263,6 +307,12 @@ export const ExpenseProvider = ({ children }) => {
 
       await Promise.all(requests);
       await fetchBudget();
+      addNotification({
+        title: 'Budget saved',
+        message: 'Your monthly and category budgets were updated.',
+        type: 'success',
+        dedupeKey: `budget-save-${year}-${month}-${Date.now()}`
+      });
       toast.success('Budget updated successfully');
       return true;
     } catch (error) {
@@ -319,6 +369,98 @@ export const ExpenseProvider = ({ children }) => {
     });
     return monthlyMap;
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthExpenses = expenses.filter((exp) => {
+      const expDate = new Date(exp.date);
+      return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
+    });
+
+    const currentMonthTotal = currentMonthExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+
+    if (budget?.monthlyBudget > 0) {
+      const overallUsage = (currentMonthTotal / budget.monthlyBudget) * 100;
+
+      if (overallUsage >= 100) {
+        addNotification({
+          title: 'Monthly budget exceeded',
+          message: `You have exceeded your monthly budget of ${formatCurrency(budget.monthlyBudget)}.`,
+          type: 'error',
+          dedupeKey: `overall-budget-exceeded-${monthKey}`
+        });
+      } else if (overallUsage >= 80) {
+        addNotification({
+          title: 'Monthly budget alert',
+          message: `You have used ${overallUsage.toFixed(1)}% of your monthly budget.`,
+          type: 'warning',
+          dedupeKey: `overall-budget-alert-${monthKey}`
+        });
+      }
+    }
+
+    Object.entries(budget?.categoryBudgets || {}).forEach(([categoryId, amount]) => {
+      const category = categories.find((item) => item.id === categoryId);
+      const spent = currentMonthExpenses
+        .filter((expense) => expense.categoryId === categoryId || expense.category === category?.name)
+        .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+
+      if (amount > 0) {
+        const usage = (spent / amount) * 100;
+
+        if (usage >= 100) {
+          addNotification({
+            title: 'Category budget exceeded',
+            message: `${category?.name || 'Category'} is over budget.`,
+            type: 'error',
+            dedupeKey: `category-budget-exceeded-${categoryId}-${monthKey}`
+          });
+        } else if (usage >= 80) {
+          addNotification({
+            title: 'Category budget alert',
+            message: `${category?.name || 'Category'} has used ${usage.toFixed(1)}% of its budget.`,
+            type: 'warning',
+            dedupeKey: `category-budget-alert-${categoryId}-${monthKey}`
+          });
+        }
+      }
+    });
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const hasRecentExpense = expenses.some((expense) => new Date(expense.date) >= sevenDaysAgo);
+
+    if (!hasRecentExpense) {
+      addNotification({
+        title: 'Expense reminder',
+        message: 'No expenses were recorded in the last 7 days. Update your tracker to keep reports accurate.',
+        type: 'info',
+        dedupeKey: `expense-reminder-${formatLocalDate(now)}`
+      });
+    }
+
+    if (currentMonthExpenses.length > 0) {
+      const topCategoryMap = currentMonthExpenses.reduce((acc, expense) => {
+        acc[expense.category] = (acc[expense.category] || 0) + parseFloat(expense.amount);
+        return acc;
+      }, {});
+
+      const topCategory = Object.keys(topCategoryMap).reduce(
+        (best, current) => (topCategoryMap[current] > (topCategoryMap[best] || 0) ? current : best),
+        ''
+      );
+
+      addNotification({
+        title: 'Monthly summary ready',
+        message: `${new Date(now.getFullYear(), now.getMonth(), 1).toLocaleString('default', { month: 'long' })}: ${formatCurrency(currentMonthTotal)} spent${topCategory ? `, top category ${topCategory}.` : '.'}`,
+        type: 'info',
+        dedupeKey: `monthly-summary-${monthKey}`
+      });
+    }
+  }, [expenses, budget, categories, isAuthenticated, addNotification]);
 
   const value = {
     expenses,

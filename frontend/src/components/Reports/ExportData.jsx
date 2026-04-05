@@ -1,7 +1,10 @@
 import React from 'react';
 import { FiDownload } from 'react-icons/fi';
+import { useNotifications } from '../../context/NotificationsContext';
 
 const ExportData = ({ expenses }) => {
+  const { addNotification } = useNotifications();
+
   const exportToExcel = () => {
     const headers = ['Date', 'Category', 'Description', 'Amount'];
     const rows = expenses.map(exp => [
@@ -23,6 +26,12 @@ const ExportData = ({ expenses }) => {
     link.download = `expenses_${new Date().toISOString().split('T')[0]}.xls`;
     link.click();
     URL.revokeObjectURL(url);
+    addNotification({
+      title: 'Excel export completed',
+      message: `${expenses.length} expense records were exported to Excel.`,
+      type: 'success',
+      dedupeKey: `excel-export-${new Date().toISOString()}`
+    });
   };
   
   return (

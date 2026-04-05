@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatCurrency } from '../../utils/formatters';
-import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiPieChart } from 'react-icons/fi';
+import { FiTrendingUp, FiTrendingDown, FiPieChart } from 'react-icons/fi';
 
 const ExpenseSummary = ({ expenses }) => {
   const totalExpenses = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
@@ -12,7 +12,7 @@ const ExpenseSummary = ({ expenses }) => {
     {
       title: 'Total Expenses',
       value: formatCurrency(totalExpenses),
-      icon: <FiDollarSign className="text-blue-500" size={24} />,
+      icon: <span className="text-blue-500 text-xl font-bold leading-none">£</span>,
       bgColor: 'bg-blue-50'
     },
     {

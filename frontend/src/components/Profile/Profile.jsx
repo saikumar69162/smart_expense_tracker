@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationsContext';
 import { authService } from '../../services/authService';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
   const { user, refreshUser } = useAuth();
+  const { addNotification } = useNotifications();
   const [profileForm, setProfileForm] = useState({
     name: '',
     email: '',
@@ -40,6 +42,12 @@ const Profile = () => {
         timezone: profileForm.timezone
       });
       await refreshUser();
+      addNotification({
+        title: 'Profile updated',
+        message: 'Your profile details were updated successfully.',
+        type: 'success',
+        dedupeKey: `profile-update-${Date.now()}`
+      });
       toast.success('Profile updated successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update profile');
@@ -62,6 +70,12 @@ const Profile = () => {
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
+      });
+      addNotification({
+        title: 'Password changed',
+        message: 'Your account password was updated successfully.',
+        type: 'success',
+        dedupeKey: `password-change-${Date.now()}`
       });
       toast.success('Password updated successfully');
     } catch (error) {
