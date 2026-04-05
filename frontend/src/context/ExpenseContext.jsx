@@ -5,6 +5,43 @@ import api from '../services/api';
 
 const ExpenseContext = createContext();
 
+const formatLocalDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getCurrentBudgetWindow = () => {
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    startDate: formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1))
+  };
+};
+
+const normalizeBudgetSummary = (budgets = []) => {
+  const { year, month } = getCurrentBudgetWindow();
+  const monthlyBudgets = budgets.filter(
+    (item) => item.period === 'monthly' && item.year === year && item.month === month && item.isActive
+  );
+
+  const overallBudget = monthlyBudgets.find((item) => !item.categoryId);
+  const categoryBudgets = monthlyBudgets.reduce((acc, item) => {
+    if (item.categoryId) {
+      acc[item.categoryId] = parseFloat(item.amount) || 0;
+    }
+    return acc;
+  }, {});
+
+  return {
+    monthlyBudget: overallBudget ? parseFloat(overallBudget.amount) || 0 : 0,
+    categoryBudgets,
+    records: budgets
+  };
+};
+
 export const useExpenses = () => {
   const context = useContext(ExpenseContext);
   if (!context) {
@@ -120,7 +157,7 @@ export const ExpenseProvider = ({ children }) => {
   const fetchBudget = async () => {
     try {
       const response = await api.get('/budget');
-      setBudget(response.data.budgets || []);
+      setBudget(normalizeBudgetSummary(response.data.budgets || []));
     } catch (error) {
       console.error('Failed to fetch budget:', error);
     }
@@ -128,13 +165,67 @@ export const ExpenseProvider = ({ children }) => {
 
   const updateBudget = async (budgetData) => {
     try {
-      const response = await api.post('/budget', budgetData);
-      setBudget((current) => {
-        const currentBudgets = Array.isArray(current) ? current : [];
-        return [response.data.budget, ...currentBudgets];
+      const { year, month, startDate } = getCurrentBudgetWindow();
+      const currentRecords = budget?.records || [];
+      const monthlyRecords = currentRecords.filter(
+        (item) => item.period === 'monthly' && item.year === year && item.month === month
+      );
+
+      const overallRecord = monthlyRecords.find((item) => !item.categoryId);
+      const requestedCategoryBudgets = budgetData.categoryBudgets || {};
+      const existingCategoryRecords = monthlyRecords.filter((item) => item.categoryId);
+
+      const requests = [];
+      const monthlyBudgetAmount = Number(budgetData.monthlyBudget) || 0;
+
+      if (monthlyBudgetAmount > 0) {
+        const payload = {
+          amount: monthlyBudgetAmount,
+          period: 'monthly',
+          startDate
+        };
+
+        if (overallRecord) {
+          requests.push(api.put(`/budget/${overallRecord.id}`, payload));
+        } else {
+          requests.push(api.post('/budget', payload));
+        }
+      } else if (overallRecord) {
+        requests.push(api.delete(`/budget/${overallRecord.id}`));
+      }
+
+      existingCategoryRecords.forEach((record) => {
+        const amount = Number(requestedCategoryBudgets[record.categoryId]) || 0;
+        if (amount > 0) {
+          requests.push(api.put(`/budget/${record.id}`, {
+            amount,
+            period: 'monthly',
+            startDate,
+            categoryId: record.categoryId
+          }));
+        } else {
+          requests.push(api.delete(`/budget/${record.id}`));
+        }
       });
+
+      Object.entries(requestedCategoryBudgets).forEach(([categoryId, value]) => {
+        const amount = Number(value) || 0;
+        const existingRecord = existingCategoryRecords.find((item) => item.categoryId === categoryId);
+
+        if (!existingRecord && amount > 0) {
+          requests.push(api.post('/budget', {
+            categoryId,
+            amount,
+            period: 'monthly',
+            startDate
+          }));
+        }
+      });
+
+      await Promise.all(requests);
+      await fetchBudget();
       toast.success('Budget updated successfully');
-      return response.data.budget;
+      return true;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update budget');
       throw error;

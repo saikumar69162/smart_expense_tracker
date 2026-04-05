@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useExpenses } from '../../context/ExpenseContext';
 import { formatCurrency } from '../../utils/formatters';
-import { FiSave, FiDollarSign, FiAlertCircle } from 'react-icons/fi';
+import { FiSave, FiAlertCircle } from 'react-icons/fi';
 
 const BudgetSetup = () => {
   const { budget, updateBudget, categories, expenses } = useExpenses();
@@ -65,7 +65,7 @@ const BudgetSetup = () => {
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center mb-4">
             <div className="p-2 bg-blue-100 rounded-lg mr-3">
-              <FiDollarSign className="text-blue-600" size={24} />
+              <span className="block text-blue-600 text-xl font-bold leading-none">£</span>
             </div>
             <h2 className="text-xl font-semibold text-gray-800">Monthly Budget</h2>
           </div>
@@ -76,7 +76,7 @@ const BudgetSetup = () => {
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                $
+                £
               </span>
               <input
                 type="number"
@@ -143,7 +143,7 @@ const BudgetSetup = () => {
                   
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                      $
+                      £
                     </span>
                     <input
                       type="number"

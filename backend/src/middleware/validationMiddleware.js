@@ -40,9 +40,9 @@ const validateExpense = [
 
 // Budget validations
 const validateBudget = [
-  body('amount').isFloat({ min: 0 }).withMessage('Amount must be a positive number'),
-  body('period').isIn(['monthly', 'weekly', 'yearly']).withMessage('Invalid period'),
-  body('startDate').isISO8601().withMessage('Invalid start date')
+  body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
+  body('period').isIn(['monthly', 'quarterly', 'yearly']).withMessage('Invalid period'),
+  body('startDate').optional().isISO8601().withMessage('Invalid start date')
 ];
 
 module.exports = {
